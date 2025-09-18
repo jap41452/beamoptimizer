@@ -1,0 +1,39 @@
+:root {
+      --pad: 50px;
+      --beam-w: 960px;       /* desired max drawing width */
+      --plot-h: 260px;
+      --right-gutter: 25px; /* empty page space to the right of canvases */
+    }
+
+    body { background: #f4f4f4; font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif; margin: 24px; }
+    h2 { margin: 0 0 12px; }
+    .row { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+    .row + .row { margin-top: 8px; }
+    label { display: inline-flex; gap: 6px; align-items: center; }
+    input, button, select { height: 30px; padding: 0 10px; border-radius: 6px; border: 1px solid #bbb; background: #fff; }
+    button { cursor: pointer; }
+    button.primary { background: #9aa0a6; color: #111; border-color: #9aa0a6; border-radius: 2px; }
+
+    #stage { max-width: 100%; }
+
+    #beamCanvas, .plot {
+      display: block;
+      width: min(var(--beam-w), calc(100% - var(--right-gutter)));
+      max-width: calc(100% - var(--right-gutter));
+      background: #fff;
+      border: 1px solid #ddd;
+    }
+
+    #beamCanvas { height: 260px; }
+    .plot { height: var(--plot-h); }
+
+    @media (max-width: 1100px) {
+      :root { --right-gutter: 24px; }
+    }
+
+    .hint { font-size: 12px; color: #555; }
+
+    .swal2-popup { font-size: 12px !important; width: auto !important; min-width: 260px !important; }
+    .swal2-input, .swal2-select { font-size: 12px !important; width: 160px !important; margin: 4px !important; }
+    .swal2-html-container label { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; }
+    .swal2-html-container label span { margin-right: 8px; }
