@@ -522,77 +522,199 @@
       drawNodeDot(ctx, x, midY);
     }
 
-    function drawNodeDot(ctx, x, y){ ctx.beginPath(); ctx.fillStyle = '#06f'; ctx.arc(x, y, 6, 0, Math.PI*2); ctx.fill(); }
+   function drawNodeDot(ctx, x, y) {
+  ctx.beginPath();
+  ctx.fillStyle = '#06f';
+  ctx.arc(x, y, 6, 0, Math.PI * 2);
+  ctx.fill();
+}
 
-    // Visualize linear distributed load q(x)
-    function drawLoadBlanket(ctx, x, midY, width, height, qL, qR, maxAbsQ){
-      if ((!qL && !qR) || !isFinite(maxAbsQ) || maxAbsQ <= 0) return;
-      const count = Math.max(6, Math.floor(width / 40));
-      const spacing = width / (count + 1);
-      ctx.save(); ctx.strokeStyle = '#0a8'; ctx.lineWidth = 1.5;
-      for (let k=1;k<=count;k++){
-        const xi = x + k*spacing; const r = (xi - x)/width;
-        const qx = qL + (qR - qL) * r; if (!qx) continue;
-        const up = qx > 0; const baseY = up ? (midY - height/2 - 6) : (midY + height/2 + 6);
-        const maxLen = 48;
-        const len = Math.max(10, (maxLen * Math.abs(qx)) / maxAbsQ);
-        const tipY = up ? (baseY - len) : (baseY + len);
-        ctx.beginPath(); ctx.moveTo(xi, baseY); ctx.lineTo(xi, tipY); ctx.stroke();
-        ctx.beginPath(); if (up){ ctx.moveTo(xi-6, tipY+8); ctx.lineTo(xi, tipY); ctx.lineTo(xi+6, tipY+8); }
-                         else  { ctx.moveTo(xi-6, tipY-8); ctx.lineTo(xi, tipY); ctx.lineTo(xi+6, tipY-8); }
-        ctx.stroke();
-      }
-      ctx.restore();
+// Visualize linear distributed load q(x)
+function drawLoadBlanket(ctx, x, midY, width, height, qL, qR, maxAbsQ) {
+  if ((!qL && !qR) || !isFinite(maxAbsQ) || maxAbsQ <= 0) return;
+
+  const count = Math.max(6, Math.floor(width / 40));
+  const spacing = width / (count + 1);
+
+  ctx.save();
+  ctx.strokeStyle = '#0a8';
+  ctx.lineWidth = 1.5;
+
+  for (let k = 1; k <= count; k++) {
+    const xi = x + k * spacing;
+    const r  = (xi - x) / width;
+    const qx = qL + (qR - qL) * r;
+    if (!qx) continue;
+
+    const up    = qx > 0;
+    const baseY = up ? (midY - height / 2 - 6) : (midY + height / 2 + 6);
+    const maxLen = 48;
+    const len   = Math.max(10, (maxLen * Math.abs(qx)) / maxAbsQ);
+    const tipY  = up ? (baseY - len) : (baseY + len);
+
+    ctx.beginPath();
+    ctx.moveTo(xi, baseY);
+    ctx.lineTo(xi, tipY);
+    ctx.stroke();
+
+    ctx.beginPath();
+    if (up) {
+      ctx.moveTo(xi - 6, tipY + 8);
+      ctx.lineTo(xi, tipY);
+      ctx.lineTo(xi + 6, tipY + 8);
+    } else {
+      ctx.moveTo(xi - 6, tipY - 8);
+      ctx.lineTo(xi, tipY);
+      ctx.lineTo(xi + 6, tipY - 8);
     }
+    ctx.stroke();
+  }
 
-    function drawNodeFeatures(ctx, x, y, node, maxAbsF){
-      ctx.strokeStyle = '#000'; ctx.lineWidth = 2;
-      if (node.bc === 'pinned') { ctx.beginPath(); ctx.moveTo(x-16, y+18); ctx.lineTo(x, y); ctx.lineTo(x+16, y+18); ctx.closePath(); ctx.stroke(); }
-      else if (node.bc === 'fixed') { ctx.beginPath(); ctx.moveTo(x-6, y-24); ctx.lineTo(x-6, y+24); ctx.stroke(); for (let yy=y-24; yy<=y+24; yy+=8) { ctx.beginPath(); ctx.moveTo(x-6, yy); ctx.lineTo(x-18, yy+8); ctx.stroke(); } }
-      if (node.pinJoint) { ctx.beginPath(); ctx.arc(x, y, 9, 0, Math.PI*2); ctx.stroke(); }
-      if (node.Kv !== 0) { ctx.beginPath(); let sY=y+10; ctx.moveTo(x, sY); for (let i=0;i<5;i++){ ctx.lineTo(x+(i%2===0?6:-6), sY+6); sY+=6; } ctx.lineTo(x, sY+6); ctx.stroke(); }
-      if (node.Km !== 0) { ctx.beginPath(); ctx.arc(x-24, y, 10, 0, Math.PI*2); ctx.stroke(); ctx.beginPath(); ctx.moveTo(x-14, y); ctx.lineTo(x-6, y); ctx.stroke(); }
+  ctx.restore();
+}
 
-      // Nodal moment glyph
-      if (Math.abs(node.M) > 1e-12) {
-        const isPos = node.M > 0;
-        const r = 22;
-        ctx.beginPath();
-        if (isPos) ctx.arc(x, y, r, -0.5*Math.PI, 0.5*Math.PI, false);
-        else       ctx.arc(x, y, r,  0.5*Math.PI, -0.5*Math.PI, false);
-        ctx.stroke();
-        const theta = isPos ? 0.5*Math.PI : -0.5*Math.PI;
-        const tipX = x + r * Math.cos(theta);
-        const tipY = y + r * Math.sin(theta);
-        const shaft = 10, head = 12, phi = Math.PI/6, baseA = Math.PI;
-        ctx.beginPath(); ctx.moveTo(tipX, tipY); ctx.lineTo(tipX - shaft, tipY);
-        ctx.moveTo(tipX, tipY); ctx.lineTo(tipX + head*Math.cos(baseA + phi), tipY + head*Math.sin(baseA + phi));
-        ctx.moveTo(tipX, tipY); ctx.lineTo(tipX + head*Math.cos(baseA - phi), tipY + head*Math.sin(baseA - phi));
-        ctx.stroke();
-      }
+function drawNodeFeatures(ctx, x, y, node, maxAbsF) {
+  ctx.strokeStyle = '#000';
+  ctx.lineWidth = 2;
 
-      if (Math.abs(node.F) > 1e-12) {
-        const up = node.F > 0;
-        const base = 16, extra = 34;
-        const len = (maxAbsF && maxAbsF > 0) ? base + extra * (Math.abs(node.F) / maxAbsF) : base + extra * 0.6;
-        const tail = y + (up ? 10 : -10);
-        const tip  = y + (up ? -len :  len);
-        ctx.beginPath(); ctx.moveTo(x, tail); ctx.lineTo(x, tip); ctx.stroke();
-        ctx.beginPath();
-        if (up) { ctx.moveTo(x - 7, tip + 8); ctx.lineTo(x, tip); ctx.lineTo(x + 7, tip + 8); }
-        else    { ctx.moveTo(x - 7, tip - 8); ctx.lineTo(x, tip); ctx.lineTo(x + 7, tip - 8); }
-        ctx.closePath(); ctx.fill();
-      }
-      if (Number.isFinite(node.w0) && Math.abs(node.w0) > 1e-12) { const above = node.w0 > 0; const yy = y + (above ? -26 : 26); ctx.beginPath(); ctx.moveTo(x-10, yy); ctx.lineTo(x+10, yy); ctx.stroke(); }
-      if (Number.isFinite(node.th0) && Math.abs(node.th0) > 1e-12) { const cw = node.th0 > 0; ctx.beginPath(); ctx.arc(x+26, y, 10, 0.1*Math.PI, 1.4*Math.PI, !cw); ctx.stroke(); }
-      ctx.fillStyle = '#111'; ctx.textAlign = 'center'; ctx.font = '12px sans-serif'; let offsetY = y + 46;
-      if (Math.abs(node.F) > 1e-6) { ctx.fillText(`F: ${node.F}`, x, offsetY); offsetY += 14; }
-      if (Math.abs(node.Kv) > 1e-6){ ctx.fillText(`Kv: ${node.Kv}`, x, offsetY); offsetY += 14; }
-      if (Math.abs(node.Km) > 1e-6){ ctx.fillText(`Km: ${node.Km}`, x, offsetY); offsetY += 14; }
-      if (Math.abs(node.M) > 1e-6) { ctx.fillText(`M: ${node.M}`, x, offsetY); offsetY += 14; }
-      if (Number.isFinite(node.w0)) { ctx.fillText(`w₀: ${node.w0}`, x, offsetY); offsetY += 14; }
-      if (Number.isFinite(node.th0)) { ctx.fillText(`θ₀: ${node.th0}`, x, offsetY); offsetY += 14; }
+  // supports
+  if (node.bc === 'pinned') {
+    ctx.beginPath();
+    ctx.moveTo(x - 16, y + 18);
+    ctx.lineTo(x, y);
+    ctx.lineTo(x + 16, y + 18);
+    ctx.closePath();
+    ctx.stroke();
+  } else if (node.bc === 'fixed') {
+    ctx.beginPath();
+    ctx.moveTo(x - 6, y - 24);
+    ctx.lineTo(x - 6, y + 24);
+    ctx.stroke();
+    for (let yy = y - 24; yy <= y + 24; yy += 8) {
+      ctx.beginPath();
+      ctx.moveTo(x - 6, yy);
+      ctx.lineTo(x - 18, yy + 8);
+      ctx.stroke();
     }
+  }
+
+  // releases/springs
+  if (node.pinJoint) {
+    ctx.beginPath();
+    ctx.arc(x, y, 9, 0, Math.PI * 2);
+    ctx.stroke();
+  }
+  if (node.Kv !== 0) {
+    ctx.beginPath();
+    let sY = y + 10;
+    ctx.moveTo(x, sY);
+    for (let i = 0; i < 5; i++) {
+      ctx.lineTo(x + (i % 2 === 0 ? 6 : -6), sY + 6);
+      sY += 6;
+    }
+    ctx.lineTo(x, sY + 6);
+    ctx.stroke();
+  }
+  if (node.Km !== 0) {
+    ctx.beginPath();
+    ctx.arc(x - 24, y, 10, 0, Math.PI * 2);
+    ctx.stroke();
+    ctx.beginPath();
+    ctx.moveTo(x - 14, y);
+    ctx.lineTo(x - 6, y);
+    ctx.stroke();
+  }
+
+  // nodal moment glyph
+  if (Math.abs(node.M) > 1e-12) {
+    const isPos = node.M > 0;
+    const r = 22;
+
+    ctx.beginPath();
+    if (isPos) ctx.arc(x, y, r, -0.5 * Math.PI, 0.5 * Math.PI, false);
+    else       ctx.arc(x, y, r,  0.5 * Math.PI, -0.5 * Math.PI, false);
+    ctx.stroke();
+
+    const theta = isPos ? 0.5 * Math.PI : -0.5 * Math.PI;
+    const tipX  = x + r * Math.cos(theta);
+    const tipY  = y + r * Math.sin(theta);
+
+    const shaft = 10;
+    const head  = 12;
+    const phi   = Math.PI / 6;
+    const baseA = Math.PI;
+
+    ctx.beginPath();
+    ctx.moveTo(tipX, tipY);
+    ctx.lineTo(tipX - shaft, tipY);
+
+    ctx.moveTo(tipX, tipY);
+    ctx.lineTo(tipX + head * Math.cos(baseA + phi), tipY + head * Math.sin(baseA + phi));
+    ctx.moveTo(tipX, tipY);
+    ctx.lineTo(tipX + head * Math.cos(baseA - phi), tipY + head * Math.sin(baseA - phi));
+    ctx.stroke();
+  }
+
+  // nodal force glyph
+  if (Math.abs(node.F) > 1e-12) {
+    const up   = node.F > 0;
+    const base = 16, extra = 34;
+    const len  = (maxAbsF && maxAbsF > 0)
+      ? base + extra * (Math.abs(node.F) / maxAbsF)
+      : base + extra * 0.6;
+
+    const tail = y + (up ? 10 : -10);
+    const tip  = y + (up ? -len :  len);
+
+    ctx.beginPath();
+    ctx.moveTo(x, tail);
+    ctx.lineTo(x, tip);
+    ctx.stroke();
+
+    ctx.beginPath();
+    if (up) {
+      ctx.moveTo(x - 7, tip + 8);
+      ctx.lineTo(x, tip);
+      ctx.lineTo(x + 7, tip + 8);
+    } else {
+      ctx.moveTo(x - 7, tip - 8);
+      ctx.lineTo(x, tip);
+      ctx.lineTo(x + 7, tip - 8);
+    }
+    ctx.closePath();
+    ctx.fill();
+  }
+
+  // prescribed w, θ
+  if (Number.isFinite(node.w0) && Math.abs(node.w0) > 1e-12) {
+    const above = node.w0 > 0;
+    const yy = y + (above ? -26 : 26);
+    ctx.beginPath();
+    ctx.moveTo(x - 10, yy);
+    ctx.lineTo(x + 10, yy);
+    ctx.stroke();
+  }
+  if (Number.isFinite(node.th0) && Math.abs(node.th0) > 1e-12) {
+    const cw = node.th0 > 0;
+    ctx.beginPath();
+    ctx.arc(x + 26, y, 10, 0.1 * Math.PI, 1.4 * Math.PI, !cw);
+    ctx.stroke();
+  }
+
+  // labels
+  ctx.fillStyle = '#111';
+  ctx.textAlign = 'center';
+  ctx.font = '12px sans-serif';
+  let offsetY = y + 46;
+
+  if (Math.abs(node.F)  > 1e-6) { ctx.fillText(`F: ${node.F}`,   x, offsetY); offsetY += 14; }
+  if (Math.abs(node.Kv) > 1e-6) { ctx.fillText(`Kv: ${node.Kv}`, x, offsetY); offsetY += 14; }
+  if (Math.abs(node.Km) > 1e-6) { ctx.fillText(`Km: ${node.Km}`, x, offsetY); offsetY += 14; }
+  if (Math.abs(node.M)  > 1e-6) { ctx.fillText(`M: ${node.M}`,   x, offsetY); offsetY += 14; }
+  if (Number.isFinite(node.w0))  { ctx.fillText(`w₀: ${node.w0}`, x, offsetY); offsetY += 14; }
+  if (Number.isFinite(node.th0)) { ctx.fillText(`θ₀: ${node.th0}`, x, offsetY); offsetY += 14; }
+}
+
 
     // Canvas picking
     const beamCanvas = document.getElementById('beamCanvas');
