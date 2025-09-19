@@ -834,3 +834,13 @@
 
     // Initial build
     try { buildBeam(); } catch(e) { console.error(e); }
+// Auto-build the default beam when the page loads
+window.addEventListener("DOMContentLoaded", () => {
+  try {
+    buildBeam();            // draws the beam + labels immediately
+    // (optional) auto-solve on load:
+    // solveBeam();
+  } catch (e) {
+    console.error("Init error:", e);
+  }
+});
